@@ -16,31 +16,41 @@ import java.nio.file.StandardCopyOption;
  */
 public final class HologramConfigWriter {
 
-    private final FileConfiguration cfg;
+    private final java.util.function.Supplier<FileConfiguration> source;
     private final File cfgFile;
     private final File dataFolder;
     private boolean backupTakenThisProcess = false;
     private boolean backupJustCreated = false;
 
     public HologramConfigWriter(FileConfiguration cfg, File cfgFile, File dataFolder) {
-        this.cfg = cfg;
+        this(() -> cfg, cfgFile, dataFolder);
+    }
+
+    /**
+     * Reads the configuration each time: after a reload the plugin holds a new
+     * object, and writing the old one put back whatever was edited by hand.
+     */
+    public HologramConfigWriter(java.util.function.Supplier<FileConfiguration> source, File cfgFile, File dataFolder) {
+        this.source = source;
         this.cfgFile = cfgFile;
         this.dataFolder = dataFolder;
     }
 
     public synchronized boolean writeLocation(String world, double x, double y, double z) {
         ensureBackup();
+        FileConfiguration cfg = source.get();
         cfg.set("holograms.location.world", world);
         cfg.set("holograms.location.x", x);
         cfg.set("holograms.location.y", y);
         cfg.set("holograms.location.z", z);
-        return save();
+        return save(cfg);
     }
 
     public synchronized boolean writeEnabled(boolean enabled) {
         ensureBackup();
+        FileConfiguration cfg = source.get();
         cfg.set("holograms.enabled", enabled);
-        return save();
+        return save(cfg);
     }
 
     /** True if this writer just created the .bak in this very call (so caller can show the message). */
@@ -65,7 +75,7 @@ public final class HologramConfigWriter {
         }
     }
 
-    private boolean save() {
+    private boolean save(FileConfiguration cfg) {
         try {
             if (cfg instanceof YamlConfiguration) {
                 ((YamlConfiguration) cfg).save(cfgFile);

@@ -49,7 +49,7 @@ public class FTopForgeCommand implements CommandExecutor {
         this.runner = runner;
         this.msg = msg;
         HologramConfigWriter writer = new HologramConfigWriter(
-            plugin.getConfig(),
+            plugin::getConfig,
             new java.io.File(plugin.getDataFolder(), "config.yml"),
             plugin.getDataFolder());
         this.hologramSub = new HologramSubcommand(plugin, msg, writer);
@@ -257,7 +257,8 @@ public class FTopForgeCommand implements CommandExecutor {
             }
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
             for (ForensicsEvent e : rows) {
-                String insiderTag = e.isMember ? "" : msg.get("forensics.insider-tag");
+                // An insider is a MEMBER touching the valuables of their own faction.
+                String insiderTag = e.isMember ? msg.get("forensics.insider-tag") : "";
                 String line = msg.get("forensics.event-line",
                     "ts", sdf.format(new Date(e.ts)),
                     "action", e.action.name(),

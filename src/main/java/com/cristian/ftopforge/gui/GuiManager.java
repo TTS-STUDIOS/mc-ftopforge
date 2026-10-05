@@ -110,6 +110,15 @@ public class GuiManager implements Listener {
         }
     }
 
+    /** Dragging dropped the player's own items into a menu that is thrown away on close. */
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onInventoryDrag(org.bukkit.event.inventory.InventoryDragEvent event) {
+        InventoryHolder holder = event.getInventory().getHolder();
+        if (holder instanceof FTopGuiHolder || holder instanceof FBreakdownGuiHolder) {
+            event.setCancelled(true);
+        }
+    }
+
     @EventHandler
     public void onInventoryClose(InventoryCloseEvent event) {
         InventoryHolder holder = event.getInventory().getHolder();

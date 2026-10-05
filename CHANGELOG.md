@@ -2,6 +2,18 @@
 
 All notable changes to FTopForge are documented here.
 
+## [1.2.5] - 2026-10-05 — Code review fixes
+
+### Fixed
+- **Weekly rewards were lost after a restart.** The ranking was empty until the first recalculation, so a catch-up or scheduled payout in that window paid nobody and still marked the week as paid. The ranking is now restored from the last recalculation at startup, an empty ranking is never paid or recorded, and a payout owed at startup runs when the first recalculation ends.
+- **`/ftop` is no longer empty for half an hour after every restart,** and the first recalculation after a restart no longer announces a "new king" on Discord.
+- **Items in double chests were counted twice.**
+- **A recalculation asked for while rewards are being paid** no longer broadcasts that it started or leaves an unfinished row behind.
+- **`/ftopforge forensics <faction> <page> insider`** lists members of the faction, and the `(insider)` tag marks them. Both were on outsiders.
+- **Dragging items onto the top or breakdown menu** no longer loses them.
+- **`/ftopforge hologram set` after `/ftopforge reload`** no longer writes back the configuration from before the reload.
+- `999,950` is shown as `1.0M`, not `1000.0K`.
+
 ## [1.2.3] - 2026-05-21 — Hologram in-game commands + reload rebuild
 
 ### Added

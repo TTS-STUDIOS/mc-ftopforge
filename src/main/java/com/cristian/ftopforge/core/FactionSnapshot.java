@@ -88,6 +88,13 @@ public final class FactionSnapshot {
         public Builder addBlocksValue(long v) { this.blocksValue += v; return this; }
         public Builder addBalanceValue(long v) { this.balanceValue += v; return this; }
         public Builder incChunkCount() { this.chunksCount++; return this; }
+        public Builder chunksCount(int n) { this.chunksCount = n; return this; }
+        public Builder calculatedAt(long at) { this.calculatedAt = at; return this; }
+        public Builder spawnerCount(String mob, int n) { spawnersCount.put(mob.toUpperCase(), n); return this; }
+        public Builder blockCount(String material, int n) { blocksCount.put(material.toUpperCase(), n); return this; }
+        public Builder richest(String uuid, long balance) {
+            this.richestMemberUuid = uuid; this.richestMemberBalance = balance; return this;
+        }
         public Builder incSpawnerCount(String mob) {
             spawnersCount.merge(mob.toUpperCase(), 1, Integer::sum);
             return this;

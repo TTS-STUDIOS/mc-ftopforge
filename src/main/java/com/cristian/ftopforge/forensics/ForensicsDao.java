@@ -66,7 +66,7 @@ public class ForensicsDao {
      *
      * @param factionId    territory faction id (required).
      * @param actionFilter PLACE or BREAK to filter, or null for both.
-     * @param insiderOnly  when true, only return events where is_member=0 (outsider actions).
+     * @param insiderOnly  when true, only events by members of the faction that owns the land.
      * @param page         zero-based page index.
      * @param pageSize     rows per page.
      */
@@ -77,7 +77,7 @@ public class ForensicsDao {
             "chunk_x, chunk_z, territory_faction_id, is_member " +
             "FROM ftf_forensics WHERE territory_faction_id = ?");
         if (actionFilter != null) sql.append(" AND action = ?");
-        if (insiderOnly) sql.append(" AND is_member = 0");
+        if (insiderOnly) sql.append(" AND is_member = 1");
         sql.append(" ORDER BY ts DESC LIMIT ? OFFSET ?");
 
         List<ForensicsEvent> out = new ArrayList<>();

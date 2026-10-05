@@ -62,6 +62,48 @@ public class SnapshotDao {
     }
 
     /** Minimal hand-rolled JSON serializer for Map<String, Integer> (no Gson dep). */
+    /**
+     * The rows written by the newest recalculation. Older rows belong to
+     * factions that no longer exist and are left out.
+     */
+    public java.util.List<FactionSnapshot> loadLatest() throws SQLException {
+        java.util.List<FactionSnapshot> out = new java.util.ArrayList<>();
+        String sql = "SELECT faction_id, faction_name, leader_uuid, leader_name, chunks_value, "
+            + "spawners_value, items_value, blocks_value, balance_value, chunks_count, "
+            + "spawners_count_json, blocks_count_json, richest_member_uuid, richest_member_balance, "
+            + "calculated_at FROM ftf_snapshots_current "
+            + "WHERE recalc_id = (SELECT MAX(recalc_id) FROM ftf_snapshots_current)";
+        try (Connection c = repo.connection();
+             PreparedStatement ps = c.prepareStatement(sql);
+             java.sql.ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                FactionSnapshot.Builder b = FactionSnapshot.builder(rs.getString(1), rs.getString(2))
+                    .leader(rs.getString(3), rs.getString(4))
+                    .addChunksValue(rs.getLong(5)).addSpawnersValue(rs.getLong(6))
+                    .addItemsValue(rs.getLong(7)).addBlocksValue(rs.getLong(8))
+                    .addBalanceValue(rs.getLong(9)).chunksCount(rs.getInt(10))
+                    .richest(rs.getString(13), rs.getLong(14)).calculatedAt(rs.getLong(15));
+                for (Map.Entry<String, Integer> e : jsonToMap(rs.getString(11)).entrySet()) b.spawnerCount(e.getKey(), e.getValue());
+                for (Map.Entry<String, Integer> e : jsonToMap(rs.getString(12)).entrySet()) b.blockCount(e.getKey(), e.getValue());
+                out.add(b.build());
+            }
+        }
+        return out;
+    }
+
+    private static final java.util.regex.Pattern PAIR =
+        java.util.regex.Pattern.compile("\"([^\"]+)\":(\\d+)");
+
+    static Map<String, Integer> jsonToMap(String json) {
+        Map<String, Integer> out = new java.util.HashMap<>();
+        if (json == null) return out;
+        java.util.regex.Matcher m = PAIR.matcher(json);
+        while (m.find()) {
+            try { out.put(m.group(1), Integer.parseInt(m.group(2))); } catch (NumberFormatException ignored) { }
+        }
+        return out;
+    }
+
     private static String mapToJson(Map<String, Integer> m) {
         if (m == null || m.isEmpty()) return "{}";
         StringBuilder sb = new StringBuilder("{");

@@ -21,7 +21,11 @@ public class ItemValuator {
         BlockState st;
         try { st = b.getState(); } catch (Exception e) { return 0L; }
         if (!(st instanceof InventoryHolder)) return 0L;
-        Inventory inv = ((InventoryHolder) st).getInventory();
+        // Each half of a double chest is its own tile entity, and getInventory()
+        // answers with both halves: the whole chest was counted twice.
+        Inventory inv = st instanceof org.bukkit.block.Chest
+            ? ((org.bukkit.block.Chest) st).getBlockInventory()
+            : ((InventoryHolder) st).getInventory();
         long sum = 0;
         for (ItemStack is : inv.getContents()) {
             if (is == null || is.getType() == null || is.getType() == Material.AIR) continue;

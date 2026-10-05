@@ -75,7 +75,9 @@ public class RecalcRunner {
 
     /** Returns false if a recalc is already running (caller should warn). */
     public boolean trigger() {
-        if (engine.isRunning()) return false;
+        // Frozen while rewards are paid: asking first keeps a row and a broadcast
+        // from being written for a recalculation that will not run.
+        if (engine.isRunning() || engine.isFrozen()) return false;
 
         running = true;
         long startedNanos = System.nanoTime();
@@ -119,6 +121,18 @@ public class RecalcRunner {
         });
         if (!ok) running = false;
         return ok;
+    }
+
+    /** Puts the ranking saved by the last finished recalculation back after a restart. */
+    public int restoreOnEnable() {
+        try {
+            java.util.List<FactionSnapshot> saved = snapshotDao.loadLatest();
+            if (!saved.isEmpty()) cache.rebuild(saved);
+            return saved.size();
+        } catch (SQLException e) {
+            plugin.getLogger().warning("Could not restore the saved ranking: " + e.getMessage());
+            return 0;
+        }
     }
 
     public void recoverStaleOnEnable() {

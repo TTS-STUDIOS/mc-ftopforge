@@ -16,6 +16,8 @@ public final class MoneyFormat {
         else return (neg ? "-" : "") + abs;
         // 1 decimal, half-up rounding
         long scaled = Math.round((double) abs / (divisor / 10.0));
+        // 999,950 rounds to 1000.0K: move up a unit instead.
+        if (scaled >= 10_000 && !suffix.equals("T")) return shortFmt(neg ? -(divisor * 1000) : divisor * 1000);
         long whole = scaled / 10;
         long frac = scaled % 10;
         return (neg ? "-" : "") + whole + "." + frac + suffix;

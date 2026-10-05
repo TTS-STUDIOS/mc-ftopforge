@@ -45,6 +45,12 @@ public final class PayoutRunner {
     public boolean isInProgress() { return inProgress.get(); }
 
     public boolean run(List<FactionSnapshot> top, long now) {
+        // An empty ranking (first minutes after a restart) pays nobody: recording
+        // it would mark the week as paid and the rewards would be lost.
+        if (top == null || top.isEmpty()) {
+            if (log != null) log.warning("[payout] the ranking is empty: nothing paid, nothing recorded");
+            return false;
+        }
         if (!inProgress.compareAndSet(false, true)) return false;
         try {
             freezer.run();

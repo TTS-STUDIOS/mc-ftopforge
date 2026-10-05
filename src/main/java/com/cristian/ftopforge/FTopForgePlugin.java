@@ -159,6 +159,8 @@ public class FTopForgePlugin extends JavaPlugin {
                 delaySeconds);
 
         recalcRunner.recoverStaleOnEnable();
+        int restored = recalcRunner.restoreOnEnable();
+        if (restored > 0) getLogger().info("Ranking restored from the last recalculation: " + restored + " factions.");
 
         // --- Bundle A (GUI) wiring ---
         runtimeState.guiEnabled = cfg.getBoolean("gui.enabled", true);
@@ -289,7 +291,15 @@ public class FTopForgePlugin extends JavaPlugin {
                     getLogger().warning(messages.get("rewards.catch-up-warn",
                         "last", String.valueOf(metaDao.getLong("last_payout_at").orElse(0L)),
                         "missed", "1+"));
-                    payoutRunner.run(new ArrayList<>(topCache.top(10)), now);
+                    if (!payoutRunner.run(new ArrayList<>(topCache.top(10)), now)) {
+                        // No ranking to pay from yet: pay as soon as the first recalculation ends.
+                        final java.util.concurrent.atomic.AtomicBoolean owed =
+                            new java.util.concurrent.atomic.AtomicBoolean(true);
+                        recalcRunner.onFinish((id, finishedAt, top) -> {
+                            if (!owed.compareAndSet(true, false)) return;
+                            payoutRunner.run(new ArrayList<>(topCache.top(10)), System.currentTimeMillis());
+                        });
+                    }
                 }
                 scheduleNextPayout(now);
                 runtimeState.rewardsEnabled = true;

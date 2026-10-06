@@ -99,7 +99,7 @@ All notable changes to FTopForge are documented here.
 - **Rewards + Season** (Bundle D): tablas `ftf_seasons` + `ftf_meta`, `CronScheduler` weekly con timezone IANA (5 tests), catch-up on startup si missed (DEC-039), `PayoutRunner` con freeze/unfreeze via `CalculationEngine.setFrozen` + `Bukkit.dispatchCommand` via `CommandDispatcher` interface. Manual `/ftopforge rewards run`. Soft season strategy (no worth reset, solo season marker).
 - **`/ftopforge worth`** (Polish): item-in-hand o block-target lookup vía raytrace, MOB_SPAWNER detection via `BlockStateMeta`, formato chat con flag notListed.
 - **Dynamic banner modules line** (Polish): placeholder runtime `${ftf.modules}` (DEC-042 — renombrado desde `${modules}` para evitar clash con built-in Maven `project.modules`). `RuntimeState` POJO populated durante `onEnable` wiring. Línea final: `modules: GUI | Holo(DH) | PAPI | History | Forensics | Rewards | bStats`.
-- **bStats** (Polish): `org.bstats:bstats-bukkit:3.0.2` shadeado + relocado a `com.cristian.ftopforge.libs.bstats`. `BStatsHook.enable` con `pluginId=0` placeholder (DEC-041) + 3 custom charts (faction_count, recalc_duration_ms, modules_enabled drilldown).
+- **bStats** (Polish): `org.bstats:bstats-bukkit:3.0.2` shadeado + relocado a `com.ttsstudio.ftopforge.libs.bstats`. `BStatsHook.enable` con `pluginId=0` placeholder (DEC-041) + 3 custom charts (faction_count, recalc_duration_ms, modules_enabled drilldown).
 - **+71 tests** (79 baseline → **150 tests**). 0 failures.
 
 ### Changed

@@ -1,6 +1,6 @@
 name: FTopForge
 version: ${project.version}
-main: com.cristian.ftopforge.FTopForgePlugin
+main: com.ttsstudio.ftopforge.FTopForgePlugin
 api-version: 1.13
 author: ttsstudio
 description: Factions ranking with bells and whistles (internal Tiamat custom)

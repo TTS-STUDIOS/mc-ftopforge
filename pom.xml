@@ -4,9 +4,9 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.cristian</groupId>
+  <groupId>com.ttsstudio</groupId>
   <artifactId>ftopforge</artifactId>
-  <version>1.2.5</version>
+  <version>1.2.6</version>
   <packaging>jar</packaging>
 
   <name>FTopForge</name>
@@ -178,15 +178,15 @@
               <relocations>
                 <relocation>
                   <pattern>com.zaxxer.hikari</pattern>
-                  <shadedPattern>com.cristian.ftopforge.libs.hikari</shadedPattern>
+                  <shadedPattern>com.ttsstudio.ftopforge.libs.hikari</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>org.slf4j</pattern>
-                  <shadedPattern>com.cristian.ftopforge.libs.slf4j</shadedPattern>
+                  <shadedPattern>com.ttsstudio.ftopforge.libs.slf4j</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>org.bstats</pattern>
-                  <shadedPattern>com.cristian.ftopforge.libs.bstats</shadedPattern>
+                  <shadedPattern>com.ttsstudio.ftopforge.libs.bstats</shadedPattern>
                 </relocation>
                 <!-- DO NOT relocate org.sqlite - native libs hardcode the package -->
               </relocations>

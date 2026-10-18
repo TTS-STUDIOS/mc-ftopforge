@@ -271,8 +271,9 @@ public class FTopForgePlugin extends JavaPlugin {
                 final CalculationEngine eng = this.engine;
                 Runnable freezer = cfg.getBoolean("rewards.freeze-during-payout", true)
                     ? () -> eng.setFrozen(true) : () -> {};
+                // The commands are queued on the next tick: unfreeze behind them, not before.
                 Runnable unfreezer = cfg.getBoolean("rewards.freeze-during-payout", true)
-                    ? () -> eng.setFrozen(false) : () -> {};
+                    ? () -> Bukkit.getScheduler().runTask(this, () -> eng.setFrozen(false)) : () -> {};
                 PayoutRunner.CommandDispatcher dispatcher =
                     cmd -> Bukkit.getScheduler().runTask(this,
                         () -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd));

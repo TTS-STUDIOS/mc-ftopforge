@@ -76,4 +76,38 @@ class PayoutRunnerTest {
         assertEquals(1, unfrozen.get());
         assertFalse(runner.isInProgress());
     }
+
+    @Test
+    void payoutIsSavedBeforeAnyCommandRuns() {
+        List<String> events = new ArrayList<>();
+        SeasonService seasons = new SeasonService((MetaDao) null, (SeasonsDao) null) {
+            @Override
+            public long recordPayout(long now, String top10Json, String payoutsLog) {
+                events.add("saved");
+                return 1L;
+            }
+        };
+        PayoutRunner runner = new PayoutRunner(seasons,
+            Collections.singletonMap(1, Collections.singletonList("eco give x 1")),
+            false, null, cmd -> events.add("cmd"), msg -> {}, null, null, Logger.getAnonymousLogger());
+        assertTrue(runner.run(Arrays.asList(FactionSnapshot.builder("f1", "F1").build()), 1000L));
+        assertEquals(Arrays.asList("saved", "cmd"), events);
+    }
+
+    @Test
+    void nothingIsPaidWhenSavingFails() {
+        List<String> dispatched = new ArrayList<>();
+        SeasonService seasons = new SeasonService((MetaDao) null, (SeasonsDao) null) {
+            @Override
+            public long recordPayout(long now, String top10Json, String payoutsLog) throws SQLException {
+                throw new SQLException("disk full");
+            }
+        };
+        PayoutRunner runner = new PayoutRunner(seasons,
+            Collections.singletonMap(1, Collections.singletonList("eco give x 1")),
+            false, null, dispatched::add, msg -> {}, null, null, Logger.getAnonymousLogger());
+        assertFalse(runner.run(Arrays.asList(FactionSnapshot.builder("f1", "F1").build()), 1000L));
+        assertTrue(dispatched.isEmpty(), "a payout that could not be saved must not be paid");
+        assertFalse(runner.isInProgress());
+    }
 }

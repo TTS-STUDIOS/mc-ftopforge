@@ -55,6 +55,7 @@ public final class PayoutRunner {
         try {
             freezer.run();
             StringBuilder payoutsLog = new StringBuilder();
+            List<String> toRun = new java.util.ArrayList<>();
             for (Map.Entry<Integer, List<String>> e : rankCommands.entrySet()) {
                 int rank = e.getKey();
                 if (rank > top.size()) {
@@ -68,20 +69,24 @@ public final class PayoutRunner {
                         .replace("%faction_name%", s.factionName())
                         .replace("%faction_leader_name%", s.leaderName() != null ? s.leaderName() : "Unknown")
                         .replace("%faction_value%", MoneyFormat.shortFmt(s.totalValue()));
-                    try {
-                        dispatcher.dispatch(resolved);
-                        payoutsLog.append("OK ").append(resolved).append('\n');
-                    } catch (Throwable t) {
-                        payoutsLog.append("FAIL ").append(resolved).append(" :: ").append(t.getMessage()).append('\n');
-                        if (log != null) log.log(Level.WARNING, "[payout] dispatch failed: " + resolved, t);
-                    }
+                    toRun.add(resolved);
+                    payoutsLog.append("QUEUED ").append(resolved).append('\n');
                 }
             }
-            String top10Json = serializeTop10(top);
+            // Saved BEFORE the commands run: if saving fails nothing is paid and the payout is
+            // retried, and if the server dies right after, the week is not paid a second time.
             try {
-                seasonService.recordPayout(now, top10Json, payoutsLog.toString());
+                seasonService.recordPayout(now, serializeTop10(top), payoutsLog.toString());
             } catch (SQLException ex) {
-                if (log != null) log.log(Level.WARNING, "[payout] recordPayout failed", ex);
+                if (log != null) log.log(Level.WARNING, "[payout] recordPayout failed: nothing was paid", ex);
+                return false;
+            }
+            for (String resolved : toRun) {
+                try {
+                    dispatcher.dispatch(resolved);
+                } catch (Throwable t) {
+                    if (log != null) log.log(Level.WARNING, "[payout] dispatch failed: " + resolved, t);
+                }
             }
             if (broadcastEnabled && !top.isEmpty() && broadcastTemplate != null) {
                 FactionSnapshot t1 = top.get(0);

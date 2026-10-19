@@ -2,6 +2,12 @@
 
 All notable changes to FTopForge are documented here.
 
+## [1.2.7] - 2026-10-19
+
+### Fixed
+- **Weekly rewards can no longer be paid twice.** The payout is now saved before the reward commands run. If saving fails nothing is paid and it is retried (next restart or next scheduled time); before, the commands ran anyway and could run again after recovering.
+- **The ranking stays frozen until the reward commands have actually run.** It was unfrozen one step before them.
+
 ## [1.2.5] - 2026-10-05 — Code review fixes
 
 ### Fixed

@@ -62,7 +62,7 @@ public class FTopForgeCommand implements CommandExecutor {
                 "&7/ftopforge <worth|history|forensics|recalc|rewards|reload|version|hologram> [args]"));
             return true;
         }
-        String sub = args[0].toLowerCase();
+        String sub = args[0].toLowerCase(java.util.Locale.ROOT);
         switch (sub) {
             case "version":
                 sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
@@ -78,6 +78,7 @@ public class FTopForgeCommand implements CommandExecutor {
             case "reload":
                 if (!sender.hasPermission("ftopforge.admin")) { sender.sendMessage(msg.get("errors.no-permission")); return true; }
                 plugin.reloadConfig();
+                plugin.reloadPrices();
                 plugin.reloadMessages();
                 plugin.shutdownHolograms();
                 plugin.bootstrapHolograms();
@@ -238,7 +239,7 @@ public class FTopForgeCommand implements CommandExecutor {
             catch (NumberFormatException ignored) {}
         }
         if (args.length >= 4) {
-            String f = args[3].toLowerCase();
+            String f = args[3].toLowerCase(java.util.Locale.ROOT);
             if (f.equals("insider")) insiderOnly = true;
             else if (f.equals("place")) actionFilter = ForensicsEvent.Action.PLACE;
             else if (f.equals("break")) actionFilter = ForensicsEvent.Action.BREAK;
@@ -289,7 +290,7 @@ public class FTopForgeCommand implements CommandExecutor {
                 "usage", "/ftopforge rewards <next|run|history [page]>"));
             return true;
         }
-        String sub = args[1].toLowerCase();
+        String sub = args[1].toLowerCase(java.util.Locale.ROOT);
         switch (sub) {
             case "next": {
                 TimeZone tz = plugin.payoutTimeZone();

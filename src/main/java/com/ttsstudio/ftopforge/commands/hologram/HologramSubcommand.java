@@ -23,7 +23,7 @@ public final class HologramSubcommand {
     /** args[0] is always "hologram"; subcommand sits in args[1] when present. */
     public void handle(CommandSender sender, String[] args) {
         if (args.length < 2) { sender.sendMessage(msg.get("hologram.usage")); return; }
-        String sub = args[1].toLowerCase();
+        String sub = args[1].toLowerCase(java.util.Locale.ROOT);
         switch (sub) {
             case "set":     handleSet(sender, args); return;
             case "move":    handleMove(sender, args); return;

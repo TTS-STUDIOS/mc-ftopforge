@@ -18,7 +18,7 @@ public final class HologramService {
                                         PluginPresenceChecker checker,
                                         Plugin plugin,
                                         Logger log) {
-        String pref = configEngine == null ? "auto" : configEngine.toLowerCase();
+        String pref = configEngine == null ? "auto" : configEngine.toLowerCase(java.util.Locale.ROOT);
         boolean dh = checker.isEnabled("DecentHolograms");
         // HD is intentionally unsupported in this build (T7 fallback)
         switch (pref) {

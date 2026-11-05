@@ -2,6 +2,15 @@
 
 All notable changes to FTopForge are documented here.
 
+## [1.2.8] - 2026-11-05
+
+### Fixed
+- **The weekly Discord post now goes out.** `discord.events.on-weekly-reset` was never sent. It now posts the top 10 and which faction got each prize after every weekly payout, including a payout caught up at startup. Each prize shows its new `rewards.ranks.<n>.label` text (e.g. `"5M + beacon"`); without one it shows `#<n>`.
+- **Diamond blocks, obsidian and every other priced block now count.** Only blocks with a tile entity (beacons, hoppers) were counted, so most of `items.yml#Blocks` added nothing. Every priced block in a claimed chunk is counted now, so faction worth goes up after the first recalculation.
+- **Bedrock is never counted**, even if `items.yml` gives it a price. With every block counted, the world's bedrock floor made each claimed chunk worth the same big amount. `BEDROCK` is removed from the default `items.yml`.
+- **FTopForge no longer switches itself off when the economy plugin starts after it.** It now waits for Essentials, CMI, XConomy, TheNewEconomy, UltraEconomy and BetterEconomy. Before, depending on start order, it stopped with "No Vault economy provider registered".
+- **`/ftopforge reload` reloads prices.** Changes to `items.yml` and the `Blocks` and `options.include-*` settings apply from the next recalculation. Before, they needed a restart.
+
 ## [1.2.7] - 2026-10-19
 
 ### Fixed

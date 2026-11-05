@@ -18,20 +18,21 @@ public class BlockValuator {
         if (configBlocksSection != null) {
             for (String k : configBlocksSection.getKeys(false)) {
                 long v = configBlocksSection.getLong(k, 0L);
-                if (v > 0) configBlocks.put(k.toUpperCase(), v);
+                if (v > 0) configBlocks.put(k.toUpperCase(java.util.Locale.ROOT), v);
             }
         }
     }
 
     /** Returns the price for this block (0 if not in any value map). */
     public long valueOf(Block b) {
-        if (b == null) return 0L;
-        Material m = b.getType();
+        return b == null ? 0L : valueOf(b.getType());
+    }
+
+    /** Price of one block of this material; config.yml#Blocks wins over items.yml#Blocks. */
+    public long valueOf(Material m) {
         if (m == null || m == Material.AIR) return 0L;
-        String name = m.name();
-        // Check both config.yml-style Blocks (Beacon, Hopper) and items.yml#Blocks (DiamondBlock, EmeraldBlock)
-        Long cv = configBlocks.get(name);
+        Long cv = configBlocks.get(m.name());
         if (cv != null) return cv;
-        return prices.blockValue(name);
+        return prices.blockValue(m.name());
     }
 }

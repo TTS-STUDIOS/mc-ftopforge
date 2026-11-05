@@ -70,7 +70,7 @@ public final class DiscordEventBus {
     private void tryFireAndPost(EventType type, long nowMs, String jsonBody) {
         try {
             int cd = cooldownHours.getOrDefault(type, 0);
-            String key = type.name().toLowerCase().replace('_', '-');
+            String key = type.name().toLowerCase(java.util.Locale.ROOT).replace('_', '-');
             if (!cooldown.tryFire(key, cd, nowMs)) return;
         } catch (java.sql.SQLException e) {
             if (log != null) log.log(Level.WARNING, "[discord] cooldown store failed", e);

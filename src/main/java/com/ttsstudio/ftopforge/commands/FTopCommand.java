@@ -31,7 +31,7 @@ public class FTopCommand implements CommandExecutor {
         this.msg = msg;
         this.perPage = Math.max(1, perPage);
         this.guiManager = guiManager;
-        this.flag = flag == null ? "auto" : flag.toLowerCase();
+        this.flag = flag == null ? "auto" : flag.toLowerCase(java.util.Locale.ROOT);
     }
 
     /** Pure-logic routing decision. Page-1 vs page-2 distinction is for test coverage of the boundary. */
@@ -52,7 +52,7 @@ public class FTopCommand implements CommandExecutor {
             if (!isPlayer) {
                 wantGui = false;
             } else {
-                String f = flag == null ? "auto" : flag.toLowerCase();
+                String f = flag == null ? "auto" : flag.toLowerCase(java.util.Locale.ROOT);
                 wantGui = !f.equals("false");
             }
         }

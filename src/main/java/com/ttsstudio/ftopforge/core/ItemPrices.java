@@ -37,7 +37,7 @@ public class ItemPrices {
             for (String piece : y.getConfigurationSection(metal).getKeys(false)) {
                 long v = y.getLong(metal + "." + piece, 0L);
                 if (v > 0) {
-                    items.put((metal + "_" + piece).toUpperCase(), v);
+                    items.put((metal + "_" + piece).toUpperCase(java.util.Locale.ROOT), v);
                 }
             }
         }
@@ -47,7 +47,7 @@ public class ItemPrices {
         if (y.isConfigurationSection("Spawners")) {
             for (String mob : y.getConfigurationSection("Spawners").getKeys(false)) {
                 long v = y.getLong("Spawners." + mob, 0L);
-                if (v > 0) spawners.put(mob.toUpperCase(), v);
+                if (v > 0) spawners.put(mob.toUpperCase(java.util.Locale.ROOT), v);
             }
         }
 
@@ -55,7 +55,7 @@ public class ItemPrices {
         if (y.isConfigurationSection("Blocks")) {
             for (String mat : y.getConfigurationSection("Blocks").getKeys(false)) {
                 long v = y.getLong("Blocks." + mat, 0L);
-                if (v > 0) blocks.put(mat.toUpperCase(), v);
+                if (v > 0) blocks.put(mat.toUpperCase(java.util.Locale.ROOT), v);
             }
         }
 
@@ -67,19 +67,19 @@ public class ItemPrices {
 
     public long itemValue(String materialName) {
         if (materialName == null) return 0L;
-        Long v = items.get(materialName.toUpperCase());
+        Long v = items.get(materialName.toUpperCase(java.util.Locale.ROOT));
         return v == null ? 0L : v;
     }
 
     public long spawnerValue(String mobName) {
         if (mobName == null) return 0L;
-        Long v = spawners.get(mobName.toUpperCase());
+        Long v = spawners.get(mobName.toUpperCase(java.util.Locale.ROOT));
         return v == null ? 0L : v;
     }
 
     public long blockValue(String materialName) {
         if (materialName == null) return 0L;
-        Long v = blocks.get(materialName.toUpperCase());
+        Long v = blocks.get(materialName.toUpperCase(java.util.Locale.ROOT));
         return v == null ? 0L : v;
     }
 
@@ -89,7 +89,7 @@ public class ItemPrices {
     private static Map<String, Long> normalize(Map<String, Long> in) {
         Map<String, Long> out = new HashMap<>();
         for (Map.Entry<String, Long> e : in.entrySet()) {
-            out.put(e.getKey().toUpperCase(), e.getValue());
+            out.put(e.getKey().toUpperCase(java.util.Locale.ROOT), e.getValue());
         }
         return out;
     }

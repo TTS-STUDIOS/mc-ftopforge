@@ -28,7 +28,7 @@ public class CalculationEngine {
 
     private final JavaPlugin plugin;
     private final FactionsUUIDHook factions;
-    private final ChunkValuator chunkValuator;
+    private volatile ChunkValuator chunkValuator;
     private final BalanceAggregator balances;
     private final int chunksPerSec;
     private final int balancesPerSec;
@@ -48,6 +48,9 @@ public class CalculationEngine {
 
     public boolean isRunning() { return running.get(); }
 
+    /** New prices apply from the next recalculation; one in progress keeps its own. */
+    public void setChunkValuator(ChunkValuator cv) { if (cv != null) this.chunkValuator = cv; }
+
     /** When frozen, tryStart returns false (used during weekly payout to avoid stale snapshots mid-write). */
     public void setFrozen(boolean f) { frozen.set(f); }
     public boolean isFrozen() { return frozen.get(); }
@@ -56,6 +59,8 @@ public class CalculationEngine {
     public boolean tryStart(Consumer<List<FactionSnapshot>> onDone) {
         if (frozen.get()) return false;
         if (!running.compareAndSet(false, true)) return false;
+
+        final ChunkValuator valuator = this.chunkValuator;
 
         // 1. Build the work queue on the main thread (Factions API isn't thread-safe).
         Deque<ChunkJob> chunkQueue = new ArrayDeque<>();
@@ -91,7 +96,7 @@ public class CalculationEngine {
                 boolean wasLoaded = ch.isLoaded();
                 if (!wasLoaded) ch.load(false);
                 try {
-                    chunkValuator.scan(ch, builders.get(job.factionId));
+                    valuator.scan(ch, builders.get(job.factionId));
                 } finally {
                     if (!wasLoaded) ch.unload(false, false);
                 }

@@ -110,4 +110,37 @@ class PayoutRunnerTest {
         assertTrue(dispatched.isEmpty(), "a payout that could not be saved must not be paid");
         assertFalse(runner.isInProgress());
     }
+
+    @Test
+    void paidListenerGetsTheRanksPaid_evenWhenSetAfterThePayout() {
+        Map<Integer, List<String>> ranks = new LinkedHashMap<>();
+        ranks.put(1, Arrays.asList("eco give %faction_leader_name% 100"));
+        ranks.put(2, Arrays.asList("eco give %faction_leader_name% 50"));
+        ranks.put(3, Arrays.asList("eco give %faction_leader_name% 25"));
+        PayoutRunner runner = new PayoutRunner(stubSeasonService(), ranks, false, null,
+            cmd -> {}, msg -> {}, null, null, Logger.getAnonymousLogger());
+        List<FactionSnapshot> top = Arrays.asList(
+            FactionSnapshot.builder("f1", "F1").leader("u1", "L1").addBalanceValue(100).build(),
+            FactionSnapshot.builder("f2", "F2").leader("u2", "L2").addBalanceValue(80).build());
+        assertTrue(runner.run(top, 1000L));
+        final List<Integer> seen = new ArrayList<>();
+        final AtomicInteger calls = new AtomicInteger();
+        runner.setPaidListener((t, paid, now) -> { calls.incrementAndGet(); seen.addAll(paid); assertEquals(2, t.size()); });
+        assertEquals(1, calls.get());
+        assertEquals(Arrays.asList(1, 2), seen);
+        assertTrue(runner.run(top, 2000L));
+        assertEquals(2, calls.get());
+    }
+
+    @Test
+    void paidListenerIsNotCalled_whenNothingWasPaid() {
+        Map<Integer, List<String>> ranks = new LinkedHashMap<>();
+        ranks.put(1, Arrays.asList("eco give %faction_leader_name% 100"));
+        PayoutRunner runner = new PayoutRunner(stubSeasonService(), ranks, false, null,
+            cmd -> {}, msg -> {}, null, null, Logger.getAnonymousLogger());
+        final AtomicInteger calls = new AtomicInteger();
+        runner.setPaidListener((t, paid, now) -> calls.incrementAndGet());
+        assertFalse(runner.run(Collections.<FactionSnapshot>emptyList(), 1000L));
+        assertEquals(0, calls.get());
+    }
 }

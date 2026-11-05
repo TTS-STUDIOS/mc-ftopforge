@@ -90,17 +90,21 @@ public final class FactionSnapshot {
         public Builder incChunkCount() { this.chunksCount++; return this; }
         public Builder chunksCount(int n) { this.chunksCount = n; return this; }
         public Builder calculatedAt(long at) { this.calculatedAt = at; return this; }
-        public Builder spawnerCount(String mob, int n) { spawnersCount.put(mob.toUpperCase(), n); return this; }
-        public Builder blockCount(String material, int n) { blocksCount.put(material.toUpperCase(), n); return this; }
+        public Builder spawnerCount(String mob, int n) { spawnersCount.put(mob.toUpperCase(java.util.Locale.ROOT), n); return this; }
+        public Builder blockCount(String material, int n) { blocksCount.put(material.toUpperCase(java.util.Locale.ROOT), n); return this; }
         public Builder richest(String uuid, long balance) {
             this.richestMemberUuid = uuid; this.richestMemberBalance = balance; return this;
         }
         public Builder incSpawnerCount(String mob) {
-            spawnersCount.merge(mob.toUpperCase(), 1, Integer::sum);
+            spawnersCount.merge(mob.toUpperCase(java.util.Locale.ROOT), 1, Integer::sum);
+            return this;
+        }
+        public Builder addBlockCount(String material, int n) {
+            blocksCount.merge(material.toUpperCase(java.util.Locale.ROOT), n, Integer::sum);
             return this;
         }
         public Builder incBlockCount(String material) {
-            blocksCount.merge(material.toUpperCase(), 1, Integer::sum);
+            blocksCount.merge(material.toUpperCase(java.util.Locale.ROOT), 1, Integer::sum);
             return this;
         }
         public Builder maybeRichest(String uuid, long balance) {

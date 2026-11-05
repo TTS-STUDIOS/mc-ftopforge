@@ -27,7 +27,7 @@ public final class CronScheduler {
     }
 
     public static int parseDayOfWeek(String name) {
-        String n = name == null ? "" : name.toUpperCase();
+        String n = name == null ? "" : name.toUpperCase(java.util.Locale.ROOT);
         switch (n) {
             case "MONDAY": return Calendar.MONDAY;
             case "TUESDAY": return Calendar.TUESDAY;

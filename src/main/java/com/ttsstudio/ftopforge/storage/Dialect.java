@@ -206,7 +206,7 @@ public enum Dialect {
 
     public static Dialect byName(String name) {
         if (name == null) throw new IllegalArgumentException("storage.type is null");
-        switch (name.toLowerCase()) {
+        switch (name.toLowerCase(java.util.Locale.ROOT)) {
             case "sqlite": return SQLITE;
             case "mysql": return MYSQL;
             default: throw new IllegalArgumentException("Unknown storage type: " + name);

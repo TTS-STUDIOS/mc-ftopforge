@@ -2,6 +2,11 @@
 
 All notable changes to FTopForge are documented here.
 
+## [Unreleased]
+
+### Added
+- **`options.ignored-worlds`** leaves the claims in the listed worlds out of the top (creative, event or resource worlds). Names are not case-sensitive and `/ftopforge reload` applies the list from the next recalculation. Empty by default, so nothing changes until you set it.
+
 ## [1.2.8] - 2026-11-05
 
 ### Fixed

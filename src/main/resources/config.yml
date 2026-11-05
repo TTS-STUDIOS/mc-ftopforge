@@ -24,6 +24,7 @@ options:
   include-offline-balances: false             # false = solo balances de online; parity con FactionsTop original
   include-item-worth-in-total-worth: true     # items en cofres dentro del claim
   prevent-ftop-usage-while-calculating: true  # bloquea /ftop durante el recalculo (evita inconsistencias)
+  ignored-worlds: []                          # claims in these worlds are left out of the top (e.g. [creative, world_the_end])
   intercept-f-top-command: false              # true = redirige `/f top` -> `/ftop` (si tu Factions ya lo provee, deja false)
 
 # --- Storage ---

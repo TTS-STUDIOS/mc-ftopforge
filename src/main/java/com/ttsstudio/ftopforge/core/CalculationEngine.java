@@ -29,6 +29,7 @@ public class CalculationEngine {
     private final JavaPlugin plugin;
     private final FactionsUUIDHook factions;
     private volatile ChunkValuator chunkValuator;
+    private volatile WorldFilter worldFilter = WorldFilter.NONE;
     private final BalanceAggregator balances;
     private final int chunksPerSec;
     private final int balancesPerSec;
@@ -51,6 +52,9 @@ public class CalculationEngine {
     /** New prices apply from the next recalculation; one in progress keeps its own. */
     public void setChunkValuator(ChunkValuator cv) { if (cv != null) this.chunkValuator = cv; }
 
+    /** Claims in these worlds are skipped from the next recalculation on. */
+    public void setWorldFilter(WorldFilter wf) { this.worldFilter = wf == null ? WorldFilter.NONE : wf; }
+
     /** When frozen, tryStart returns false (used during weekly payout to avoid stale snapshots mid-write). */
     public void setFrozen(boolean f) { frozen.set(f); }
     public boolean isFrozen() { return frozen.get(); }
@@ -61,6 +65,7 @@ public class CalculationEngine {
         if (!running.compareAndSet(false, true)) return false;
 
         final ChunkValuator valuator = this.chunkValuator;
+        final WorldFilter skip = this.worldFilter;
 
         // 1. Build the work queue on the main thread (Factions API isn't thread-safe).
         Deque<ChunkJob> chunkQueue = new ArrayDeque<>();
@@ -74,6 +79,7 @@ public class CalculationEngine {
             builders.put(f.getId(), b);
 
             for (FLocation fl : factions.claimsOf(f)) {
+                if (skip.ignores(fl.getWorldName())) continue;
                 chunkQueue.add(new ChunkJob(f.getId(), fl.getWorldName(), (int) fl.getX(), (int) fl.getZ()));
                 b.incChunkCount();
             }

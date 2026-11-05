@@ -33,7 +33,7 @@ public final class WorthQuery {
         String display = material;
         if ("MOB_SPAWNER".equalsIgnoreCase(material) && spawnerEntityType != null) {
             unit = prices.spawnerValue(spawnerEntityType);
-            display = spawnerEntityType.toUpperCase() + "_SPAWNER";
+            display = spawnerEntityType.toUpperCase(java.util.Locale.ROOT) + "_SPAWNER";
         } else {
             // Try blockValue first (placement-oriented), then itemValue as fallback
             unit = prices.blockValue(material);

@@ -139,17 +139,20 @@ rewards:
   broadcast: true                  # broadcast usa template `messages.yml#rewards.payout-broadcast`
   ranks:
     '1':
+      label: "5M + beacon + 64 golden apples + 64 diamond blocks"     # texto del aviso semanal en Discord
       commands:
         - "eco give %faction_leader_name% 5000000"
         - "give %faction_leader_name% beacon 1"
         - "give %faction_leader_name% golden_apple 64"
         - "give %faction_leader_name% diamond_block 64"
     '2':
+      label: "2M + 32 golden apples + 64 diamond blocks"     # texto del aviso semanal en Discord
       commands:
         - "eco give %faction_leader_name% 2000000"
         - "give %faction_leader_name% golden_apple 32"
         - "give %faction_leader_name% diamond_block 64"
     '3':
+      label: "750K + 16 golden apples + 32 diamond blocks"     # texto del aviso semanal en Discord
       commands:
         - "eco give %faction_leader_name% 750000"
         - "give %faction_leader_name% golden_apple 16"

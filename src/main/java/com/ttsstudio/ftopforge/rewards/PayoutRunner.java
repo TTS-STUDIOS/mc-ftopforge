@@ -14,6 +14,8 @@ public final class PayoutRunner {
 
     public interface CommandDispatcher { void dispatch(String command); }
     public interface Broadcaster { void broadcast(String message); }
+    /** Told after a payout went through: the ranking paid and the ranks that got commands. */
+    public interface PaidListener { void onPaid(List<FactionSnapshot> top, List<Integer> paidRanks, long now); }
 
     private final SeasonService seasonService;
     private final Map<Integer, List<String>> rankCommands;
@@ -25,6 +27,8 @@ public final class PayoutRunner {
     private final Runnable unfreezer;
     private final Logger log;
     private final AtomicBoolean inProgress = new AtomicBoolean(false);
+    private PaidListener paidListener;
+    private Runnable unannounced;
 
     public PayoutRunner(SeasonService seasonService,
                         Map<Integer, List<String>> rankCommands,
@@ -44,6 +48,27 @@ public final class PayoutRunner {
 
     public boolean isInProgress() { return inProgress.get(); }
 
+    /** A payout made before the listener existed (startup catch-up) is handed to it now. */
+    public synchronized void setPaidListener(PaidListener listener) {
+        this.paidListener = listener;
+        if (listener != null && unannounced != null) {
+            Runnable r = unannounced;
+            unannounced = null;
+            r.run();
+        }
+    }
+
+    private synchronized void announce(final List<FactionSnapshot> top, final List<Integer> ranks, final long now) {
+        Runnable r = new Runnable() { public void run() {
+            try {
+                paidListener.onPaid(top, ranks, now);
+            } catch (Throwable t) {
+                if (log != null) log.log(Level.WARNING, "[payout] paid listener failed", t);
+            }
+        } };
+        if (paidListener == null) unannounced = r; else r.run();
+    }
+
     public boolean run(List<FactionSnapshot> top, long now) {
         // An empty ranking (first minutes after a restart) pays nobody: recording
         // it would mark the week as paid and the rewards would be lost.
@@ -56,6 +81,7 @@ public final class PayoutRunner {
             freezer.run();
             StringBuilder payoutsLog = new StringBuilder();
             List<String> toRun = new java.util.ArrayList<>();
+            List<Integer> paidRanks = new java.util.ArrayList<>();
             for (Map.Entry<Integer, List<String>> e : rankCommands.entrySet()) {
                 int rank = e.getKey();
                 if (rank > top.size()) {
@@ -64,6 +90,7 @@ public final class PayoutRunner {
                     continue;
                 }
                 FactionSnapshot s = top.get(rank - 1);
+                paidRanks.add(rank);
                 for (String cmd : e.getValue()) {
                     String resolved = cmd
                         .replace("%faction_name%", s.factionName())
@@ -95,6 +122,7 @@ public final class PayoutRunner {
                     .replace("%value%", MoneyFormat.shortFmt(t1.totalValue()));
                 broadcaster.broadcast(msg);
             }
+            announce(new java.util.ArrayList<>(top), paidRanks, now);
             return true;
         } finally {
             try { unfreezer.run(); } catch (Throwable ignored) {}

@@ -46,7 +46,7 @@ public final class FTopForgeTabCompleter implements TabCompleter {
             return prefixMatch(args[0], options);
         }
         if (args.length >= 2) {
-            String head = args[0].toLowerCase();
+            String head = args[0].toLowerCase(java.util.Locale.ROOT);
             if (head.equals("hologram")) {
                 if (args.length == 2) return prefixMatch(args[1], HOLOGRAM_SUBS);
                 if (args.length == 3 && args[1].equalsIgnoreCase("move")) {

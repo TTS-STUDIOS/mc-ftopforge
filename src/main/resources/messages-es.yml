@@ -63,7 +63,7 @@ worth:
   no-target: '&cSostené un ítem o apuntá a un bloque con precio configurado.'
   console-only: '&cEste comando solo está disponible para jugadores.'
 admin:
-  reloaded: '%prefix%&aConfig + messages recargados'
+  reloaded: '%prefix%&aConfig, precios y mensajes recargados'
   recalc-triggered: '%prefix%&aRecálculo manual disparado'
   rewards-triggered: '%prefix%&aReset semanal manual ejecutado'
 gui:

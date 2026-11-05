@@ -131,14 +131,7 @@ public class FTopForgePlugin extends JavaPlugin {
             return;
         }
 
-        this.prices = ItemPrices.loadFromYaml(this);
-        BlockValuator bv = new BlockValuator(prices, cfg.getConfigurationSection("Blocks"));
-        SpawnerValuator sv = new SpawnerValuator(prices);
-        ItemValuator iv = new ItemValuator(prices);
-        ChunkValuator cv = new ChunkValuator(bv, sv, iv,
-                cfg.getBoolean("options.include-block-value-in-total-worth", true),
-                cfg.getBoolean("options.include-spawner-value-in-total-worth", true),
-                cfg.getBoolean("options.include-item-worth-in-total-worth", true));
+        ChunkValuator cv = loadValuator(cfg);
 
         BalanceAggregator ba = new BalanceAggregator(vaultHook,
                 cfg.getBoolean("options.include-player-balance-in-total-worth", true),
@@ -215,7 +208,7 @@ public class FTopForgePlugin extends JavaPlugin {
                 this.forensicsDao = new ForensicsDao(repo.getDataSource());
                 List<String> whitelistRaw = cfg.getStringList("forensics.whitelist-blocks");
                 java.util.Set<String> whitelist = new java.util.HashSet<>();
-                for (String s : whitelistRaw) whitelist.add(s.toUpperCase());
+                for (String s : whitelistRaw) whitelist.add(s.toUpperCase(java.util.Locale.ROOT));
                 boolean nonMembersOnly = cfg.getBoolean("forensics.log-non-members-only", false);
                 int batchSize = cfg.getInt("forensics.flush-batch-size", 100);
                 int maxRows = cfg.getInt("forensics.max-rows-per-chunk", 10000);
@@ -361,6 +354,29 @@ public class FTopForgePlugin extends JavaPlugin {
                             }
                         });
                     });
+                    if (payoutRunner != null) {
+                        final DiscordEventBus bus = this.discordBus;
+                        payoutRunner.setPaidListener((paidTop, paidRanks, paidAt) -> {
+                            List<EmbedBuilder.TopRow> rows = new ArrayList<>();
+                            for (int i = 0; i < Math.min(10, paidTop.size()); i++) {
+                                FactionSnapshot s = paidTop.get(i);
+                                rows.add(new EmbedBuilder.TopRow(i + 1, s.factionName(), s.totalValue(), 0L, false));
+                            }
+                            List<EmbedBuilder.PayoutEntry> payouts = new ArrayList<>();
+                            for (int rank : paidRanks) {
+                                String label = getConfig().getString("rewards.ranks." + rank + ".label", "");
+                                if (label == null || label.trim().isEmpty()) label = "#" + rank;
+                                payouts.add(new EmbedBuilder.PayoutEntry(rank, paidTop.get(rank - 1).factionName(), label));
+                            }
+                            Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
+                                try {
+                                    bus.onWeeklyReset(rows, payouts, paidAt);
+                                } catch (Throwable t) {
+                                    getLogger().log(Level.WARNING, "[discord] weekly reset dispatch failed", t);
+                                }
+                            });
+                        });
+                    }
                     runtimeState.discordEnabled = true;
                     getLogger().info("Discord module ready.");
                 } catch (Throwable t) {
@@ -501,6 +517,22 @@ public class FTopForgePlugin extends JavaPlugin {
         if (skullCache != null) skullCache.flush();
         if (repo != null) repo.shutdown();
         getLogger().info("FTopForge disabled");
+    }
+
+    private ChunkValuator loadValuator(org.bukkit.configuration.file.FileConfiguration cfg) {
+        this.prices = ItemPrices.loadFromYaml(this);
+        BlockValuator bv = new BlockValuator(prices, cfg.getConfigurationSection("Blocks"));
+        SpawnerValuator sv = new SpawnerValuator(prices);
+        ItemValuator iv = new ItemValuator(prices);
+        return new ChunkValuator(bv, sv, iv,
+                cfg.getBoolean("options.include-block-value-in-total-worth", true),
+                cfg.getBoolean("options.include-spawner-value-in-total-worth", true),
+                cfg.getBoolean("options.include-item-worth-in-total-worth", true));
+    }
+
+    /** Re-reads items.yml and the Blocks prices; used from the next recalculation. */
+    public void reloadPrices() {
+        if (engine != null) engine.setChunkValuator(loadValuator(getConfig()));
     }
 
     public void reloadMessages() {

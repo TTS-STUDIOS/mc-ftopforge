@@ -63,7 +63,7 @@ worth:
   no-target: '&cHold an item or look at a block with a configured price.'
   console-only: '&cThis command is only available to players.'
 admin:
-  reloaded: '%prefix%&aConfig + messages reloaded'
+  reloaded: '%prefix%&aConfig, prices and messages reloaded'
   recalc-triggered: '%prefix%&aManual recalculation triggered'
   rewards-triggered: '%prefix%&aWeekly reset manually executed'
 gui:

@@ -6,7 +6,8 @@ author: ttsstudio
 description: Factions ranking with bells and whistles (internal Tiamat custom)
 load: POSTWORLD
 depend: [Factions, Vault]
-softdepend: [PlaceholderAPI, DecentHolograms, HolographicDisplays]
+# Economy plugins first: FTopForge needs a Vault economy when it starts.
+softdepend: [PlaceholderAPI, DecentHolograms, HolographicDisplays, Essentials, CMI, XConomy, TheNewEconomy, UltraEconomy, BetterEconomy]
 
 commands:
   ftop:

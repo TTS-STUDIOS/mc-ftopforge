@@ -1,8 +1,11 @@
 package com.ttsstudio.ftopforge.core;
 
 import org.bukkit.Chunk;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
+
+import java.util.Map;
 
 public class ChunkValuator {
 
@@ -22,20 +25,32 @@ public class ChunkValuator {
     }
 
     /**
-     * Scan all tile entities + value-carrying blocks in this chunk.
-     * Tile entities (chests, spawners, hoppers, beacons) are quick to enumerate via Chunk.getTileEntities().
+     * Scan priced blocks over the whole chunk, then spawners and containers from its tile entities.
      * The chunk MUST be loaded by the caller before invoking this method.
      */
     public void scan(Chunk chunk, FactionSnapshot.Builder snapshot) {
         if (chunk == null || !chunk.isLoaded()) return;
 
-        // tile entities only — these are the value-bearing blocks (spawners, chests, hoppers, beacons).
-        // Iterating raw blocks (16x256x16 = 65536) per chunk would be too slow for big maps.
+        // Tile entities carry spawner and container value.
         BlockState[] tiles;
         try {
             tiles = chunk.getTileEntities();
         } catch (Throwable t) {
             return;
+        }
+
+        // Priced blocks are counted over the whole chunk: most of them (diamond blocks, obsidian...)
+        // are not tile entities. The tile loop below only falls back to them if the snapshot fails.
+        boolean blocksDone = false;
+        if (includeBlocks) {
+            Map<Material, Integer> counts = BlockTally.count(chunk, blockValuator::valueOf);
+            if (counts != null) {
+                blocksDone = true;
+                for (Map.Entry<Material, Integer> e : counts.entrySet()) {
+                    snapshot.addBlocksValue(blockValuator.valueOf(e.getKey()) * e.getValue());
+                    snapshot.addBlockCount(e.getKey().name(), e.getValue());
+                }
+            }
         }
 
         for (BlockState st : tiles) {
@@ -51,7 +66,7 @@ public class ChunkValuator {
                 }
             }
 
-            if (includeBlocks) {
+            if (includeBlocks && !blocksDone) {
                 long bv = blockValuator.valueOf(b);
                 if (bv > 0) {
                     snapshot.addBlocksValue(bv);

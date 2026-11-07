@@ -57,6 +57,7 @@ public class CalculationEngine {
     public void setWorldFilter(WorldFilter wf) { this.worldFilter = wf == null ? WorldFilter.NONE : wf; }
 
     /** These factions are left out of the top from the next recalculation on. */
+    public FactionFilter factionFilter() { return factionFilter; }
     public void setFactionFilter(FactionFilter ff) { this.factionFilter = ff == null ? FactionFilter.NONE : ff; }
 
     /** When frozen, tryStart returns false (used during weekly payout to avoid stale snapshots mid-write). */

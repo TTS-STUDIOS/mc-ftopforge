@@ -38,6 +38,14 @@ public class FactionsUUIDHook {
         return out;
     }
 
+    /** The faction with this id, or null if it was disbanded (or is a system faction). */
+    public Faction byId(String id) {
+        if (id == null) return null;
+        Faction f = Factions.getInstance().getFactionById(id);
+        if (f == null || f.isWilderness() || f.isSafeZone() || f.isWarZone()) return null;
+        return f;
+    }
+
     public Collection<FLocation> claimsOf(Faction f) {
         return f.getAllClaims();
     }

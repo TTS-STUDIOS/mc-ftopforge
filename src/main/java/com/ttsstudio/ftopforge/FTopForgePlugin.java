@@ -277,6 +277,14 @@ public class FTopForgePlugin extends JavaPlugin {
                 PayoutRunner.Broadcaster broadcaster = Bukkit::broadcastMessage;
                 this.payoutRunner = new PayoutRunner(seasonService, rankCommands,
                     broadcast, broadcastTpl, dispatcher, broadcaster, freezer, unfreezer, getLogger());
+                final FactionsUUIDHook hook = this.factionsHook;
+                payoutRunner.setFactionLookup(snap -> {
+                    com.massivecraft.factions.Faction f = hook.byId(snap.factionId());
+                    if (f == null || eng.factionFilter().ignores(f.getTag())) return null;
+                    UUID leader = hook.leaderUuid(f);
+                    return snap.withIdentity(f.getTag(), leader != null ? leader.toString() : null,
+                        hook.leaderName(f));
+                });
 
                 String dowName = cfg.getString("rewards.schedule.day-of-week", "MONDAY");
                 this.payoutDayOfWeek = CronScheduler.parseDayOfWeek(dowName);

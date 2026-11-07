@@ -8,6 +8,9 @@ All notable changes to FTopForge are documented here.
 - **`options.ignored-worlds`** leaves the claims in the listed worlds out of the top (creative, event or resource worlds). Names are not case-sensitive and `/ftopforge reload` applies the list from the next recalculation. Empty by default, so nothing changes until you set it.
 - **`options.ignored-factions`** leaves the listed factions out of the top by name (staff, event or admin factions), so they no longer take a place or a weekly prize. Names are not case-sensitive and `/ftopforge reload` applies the list from the next recalculation. Empty by default.
 
+### Fixed
+- **The weekly payout no longer pays a faction that was disbanded since the last recalculation.** The prize goes to the next faction and the ones below move up. A faction renamed in that time gets its commands under its current name and leader (before, `%faction_name%` used the old name, so the command failed or hit another faction that took that name). A faction added to `options.ignored-factions` is left out of the payout straight away.
+
 ## [1.2.8] - 2026-11-05
 
 ### Fixed

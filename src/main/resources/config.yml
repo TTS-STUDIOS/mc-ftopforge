@@ -25,6 +25,7 @@ options:
   include-item-worth-in-total-worth: true     # items en cofres dentro del claim
   prevent-ftop-usage-while-calculating: true  # bloquea /ftop durante el recalculo (evita inconsistencias)
   ignored-worlds: []                          # claims in these worlds are left out of the top (e.g. [creative, world_the_end])
+  ignored-factions: []                        # factions left out of the top by name (e.g. [Staff, Events])
   intercept-f-top-command: false              # true = redirige `/f top` -> `/ftop` (si tu Factions ya lo provee, deja false)
 
 # --- Storage ---

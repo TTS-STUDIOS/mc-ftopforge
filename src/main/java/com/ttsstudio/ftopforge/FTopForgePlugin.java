@@ -6,6 +6,7 @@ import com.ttsstudio.ftopforge.core.BalanceAggregator;
 import com.ttsstudio.ftopforge.core.BlockValuator;
 import com.ttsstudio.ftopforge.core.CalculationEngine;
 import com.ttsstudio.ftopforge.core.WorldFilter;
+import com.ttsstudio.ftopforge.core.FactionFilter;
 import com.ttsstudio.ftopforge.core.ChunkValuator;
 import com.ttsstudio.ftopforge.core.FactionSnapshot;
 import com.ttsstudio.ftopforge.core.ItemPrices;
@@ -142,6 +143,7 @@ public class FTopForgePlugin extends JavaPlugin {
                 cfg.getInt("options.chunks-calculated-per-second", 20),
                 cfg.getInt("options.player-balances-calculated-per-second", 20));
         this.engine.setWorldFilter(new WorldFilter(cfg.getStringList("options.ignored-worlds")));
+        this.engine.setFactionFilter(new FactionFilter(cfg.getStringList("options.ignored-factions")));
 
         long delaySeconds = cfg.getLong("options.ftop-recalculation-delay-seconds", 1800L);
 
@@ -537,6 +539,7 @@ public class FTopForgePlugin extends JavaPlugin {
         if (engine == null) return;
         engine.setChunkValuator(loadValuator(getConfig()));
         engine.setWorldFilter(new WorldFilter(getConfig().getStringList("options.ignored-worlds")));
+        engine.setFactionFilter(new FactionFilter(getConfig().getStringList("options.ignored-factions")));
     }
 
     public void reloadMessages() {

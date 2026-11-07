@@ -2,7 +2,7 @@ package com.ttsstudio.ftopforge.core;
 
 import org.junit.jupiter.api.Test;
 import java.util.Arrays;
-import java.util.List;
+import java.util.Collections;
 import static org.junit.jupiter.api.Assertions.*;
 
 class WorldFilterTest {
@@ -19,7 +19,7 @@ class WorldFilterTest {
 
     @Test
     void emptyListIgnoresNothing() {
-        assertFalse(new WorldFilter(List.of()).ignores("world"));
+        assertFalse(new WorldFilter(Collections.emptyList()).ignores("world"));
         assertFalse(new WorldFilter(null).ignores("world"));
         assertFalse(WorldFilter.NONE.ignores("world"));
     }

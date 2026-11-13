@@ -143,4 +143,73 @@ class PayoutRunnerTest {
         assertFalse(runner.run(Collections.<FactionSnapshot>emptyList(), 1000L));
         assertEquals(0, calls.get());
     }
+
+    @Test
+    void disbandedFactionIsSkipped_andTheOnesBelowMoveUp() {
+        List<String> dispatched = new ArrayList<>();
+        List<String> said = new ArrayList<>();
+        Map<Integer, List<String>> ranks = new LinkedHashMap<>();
+        ranks.put(1, Arrays.asList("f money give %faction_name% 100"));
+        ranks.put(2, Arrays.asList("f money give %faction_name% 50"));
+        PayoutRunner runner = new PayoutRunner(stubSeasonService(), ranks, true, "%faction%",
+            dispatched::add, said::add, null, null, Logger.getAnonymousLogger());
+        runner.setFactionLookup(s -> "f1".equals(s.factionId()) ? null : s);
+        List<FactionSnapshot> top = Arrays.asList(
+            FactionSnapshot.builder("f1", "Gone").leader("u1", "L1").addBalanceValue(100).build(),
+            FactionSnapshot.builder("f2", "F2").leader("u2", "L2").addBalanceValue(80).build(),
+            FactionSnapshot.builder("f3", "F3").leader("u3", "L3").addBalanceValue(60).build());
+        assertTrue(runner.run(top, 1000L));
+        assertEquals(Arrays.asList("f money give F2 100", "f money give F3 50"), dispatched);
+        assertEquals(Collections.singletonList("F2"), said);
+    }
+
+    @Test
+    void renamedFactionIsPaidUnderItsCurrentNameAndLeader() {
+        List<String> dispatched = new ArrayList<>();
+        Map<Integer, List<String>> ranks = new LinkedHashMap<>();
+        ranks.put(1, Arrays.asList("give %faction_name% %faction_leader_name% %faction_value%"));
+        PayoutRunner runner = new PayoutRunner(stubSeasonService(), ranks, false, null,
+            dispatched::add, msg -> {}, null, null, Logger.getAnonymousLogger());
+        runner.setFactionLookup(s -> s.withIdentity("NewName", "u9", "NewLeader"));
+        List<FactionSnapshot> top = Collections.singletonList(
+            FactionSnapshot.builder("f1", "OldName").leader("u1", "OldLeader").addBalanceValue(1000).build());
+        assertTrue(runner.run(top, 1000L));
+        assertEquals(1, dispatched.size());
+        assertTrue(dispatched.get(0).startsWith("give NewName NewLeader "), dispatched.get(0));
+    }
+
+    @Test
+    void everyFactionGone_paysNothingAndRecordsNothing() {
+        List<String> dispatched = new ArrayList<>();
+        AtomicInteger recorded = new AtomicInteger();
+        SeasonService seasons = new SeasonService((MetaDao) null, (SeasonsDao) null) {
+            @Override
+            public long recordPayout(long now, String top10Json, String payoutsLog) {
+                recorded.incrementAndGet();
+                return 1L;
+            }
+        };
+        Map<Integer, List<String>> ranks = new LinkedHashMap<>();
+        ranks.put(1, Arrays.asList("x %faction_name%"));
+        PayoutRunner runner = new PayoutRunner(seasons, ranks, false, null,
+            dispatched::add, msg -> {}, null, null, Logger.getAnonymousLogger());
+        runner.setFactionLookup(s -> null);
+        assertFalse(runner.run(Collections.singletonList(
+            FactionSnapshot.builder("f1", "F1").addBalanceValue(1).build()), 1000L));
+        assertTrue(dispatched.isEmpty());
+        assertEquals(0, recorded.get());
+    }
+
+    @Test
+    void lookupThatThrows_keepsTheRankingAsIs() {
+        List<String> dispatched = new ArrayList<>();
+        Map<Integer, List<String>> ranks = new LinkedHashMap<>();
+        ranks.put(1, Arrays.asList("x %faction_name%"));
+        PayoutRunner runner = new PayoutRunner(stubSeasonService(), ranks, false, null,
+            dispatched::add, msg -> {}, null, null, Logger.getAnonymousLogger());
+        runner.setFactionLookup(s -> { throw new IllegalStateException("factions not ready"); });
+        assertTrue(runner.run(Collections.singletonList(
+            FactionSnapshot.builder("f1", "F1").addBalanceValue(1).build()), 1000L));
+        assertEquals(Collections.singletonList("x F1"), dispatched);
+    }
 }

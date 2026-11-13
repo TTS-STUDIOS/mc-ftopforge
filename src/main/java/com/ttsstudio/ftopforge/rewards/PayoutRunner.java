@@ -17,6 +17,13 @@ public final class PayoutRunner {
     /** Told after a payout went through: the ranking paid and the ranks that got commands. */
     public interface PaidListener { void onPaid(List<FactionSnapshot> top, List<Integer> paidRanks, long now); }
 
+    /**
+     * Live state of a faction at payout time. The ranking comes from the last recalculation,
+     * so a faction may have been disbanded or renamed since: return null when it is gone,
+     * or the snapshot with its current name and leader.
+     */
+    public interface FactionLookup { FactionSnapshot current(FactionSnapshot s); }
+
     private final SeasonService seasonService;
     private final Map<Integer, List<String>> rankCommands;
     private final boolean broadcastEnabled;
@@ -28,6 +35,7 @@ public final class PayoutRunner {
     private final Logger log;
     private final AtomicBoolean inProgress = new AtomicBoolean(false);
     private PaidListener paidListener;
+    private FactionLookup lookup;
     private Runnable unannounced;
 
     public PayoutRunner(SeasonService seasonService,
@@ -45,6 +53,8 @@ public final class PayoutRunner {
         this.unfreezer = unfreezer != null ? unfreezer : new Runnable() { public void run() {} };
         this.log = log;
     }
+
+    public void setFactionLookup(FactionLookup lookup) { this.lookup = lookup; }
 
     public boolean isInProgress() { return inProgress.get(); }
 
@@ -70,6 +80,7 @@ public final class PayoutRunner {
     }
 
     public boolean run(List<FactionSnapshot> top, long now) {
+        top = liveOnly(top);
         // An empty ranking (first minutes after a restart) pays nobody: recording
         // it would mark the week as paid and the rewards would be lost.
         if (top == null || top.isEmpty()) {
@@ -128,6 +139,24 @@ public final class PayoutRunner {
             try { unfreezer.run(); } catch (Throwable ignored) {}
             inProgress.set(false);
         }
+    }
+
+    /** Drops factions disbanded since the recalculation (the ones below move up) and refreshes names. */
+    private List<FactionSnapshot> liveOnly(List<FactionSnapshot> top) {
+        if (top == null || lookup == null) return top;
+        List<FactionSnapshot> out = new java.util.ArrayList<>(top.size());
+        for (FactionSnapshot s : top) {
+            FactionSnapshot cur;
+            try {
+                cur = lookup.current(s);
+            } catch (Throwable t) {
+                if (log != null) log.log(Level.WARNING, "[payout] faction lookup failed, using the ranking as is", t);
+                cur = s;
+            }
+            if (cur != null) out.add(cur);
+            else if (log != null) log.info("[payout] " + s.factionName() + " no longer exists: left out of the payout");
+        }
+        return out;
     }
 
     private static String serializeTop10(List<FactionSnapshot> top) {

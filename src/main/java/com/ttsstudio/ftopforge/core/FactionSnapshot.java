@@ -41,6 +41,30 @@ public final class FactionSnapshot {
         this.calculatedAt = b.calculatedAt;
     }
 
+    private FactionSnapshot(FactionSnapshot o, String name, String leaderUuid, String leaderName) {
+        this.factionId = o.factionId;
+        this.factionName = name;
+        this.leaderUuid = leaderUuid;
+        this.leaderName = leaderName;
+        this.totalValue = o.totalValue;
+        this.chunksValue = o.chunksValue;
+        this.spawnersValue = o.spawnersValue;
+        this.itemsValue = o.itemsValue;
+        this.blocksValue = o.blocksValue;
+        this.balanceValue = o.balanceValue;
+        this.chunksCount = o.chunksCount;
+        this.spawnersCount = o.spawnersCount;
+        this.blocksCount = o.blocksCount;
+        this.richestMemberUuid = o.richestMemberUuid;
+        this.richestMemberBalance = o.richestMemberBalance;
+        this.calculatedAt = o.calculatedAt;
+    }
+
+    /** Same worth, current name and leader (a rename or a new leader since the recalculation). */
+    public FactionSnapshot withIdentity(String name, String leaderUuid, String leaderName) {
+        return new FactionSnapshot(this, name, leaderUuid, leaderName);
+    }
+
     // getters
     public String factionId() { return factionId; }
     public String factionName() { return factionName; }

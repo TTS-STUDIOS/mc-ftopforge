@@ -5,6 +5,8 @@ import com.ttsstudio.ftopforge.commands.FTopForgeCommand;
 import com.ttsstudio.ftopforge.core.BalanceAggregator;
 import com.ttsstudio.ftopforge.core.BlockValuator;
 import com.ttsstudio.ftopforge.core.CalculationEngine;
+import com.ttsstudio.ftopforge.core.WorldFilter;
+import com.ttsstudio.ftopforge.core.FactionFilter;
 import com.ttsstudio.ftopforge.core.ChunkValuator;
 import com.ttsstudio.ftopforge.core.FactionSnapshot;
 import com.ttsstudio.ftopforge.core.ItemPrices;
@@ -140,6 +142,8 @@ public class FTopForgePlugin extends JavaPlugin {
         this.engine = new CalculationEngine(this, factionsHook, cv, ba,
                 cfg.getInt("options.chunks-calculated-per-second", 20),
                 cfg.getInt("options.player-balances-calculated-per-second", 20));
+        this.engine.setWorldFilter(new WorldFilter(cfg.getStringList("options.ignored-worlds")));
+        this.engine.setFactionFilter(new FactionFilter(cfg.getStringList("options.ignored-factions")));
 
         long delaySeconds = cfg.getLong("options.ftop-recalculation-delay-seconds", 1800L);
 
@@ -273,6 +277,14 @@ public class FTopForgePlugin extends JavaPlugin {
                 PayoutRunner.Broadcaster broadcaster = Bukkit::broadcastMessage;
                 this.payoutRunner = new PayoutRunner(seasonService, rankCommands,
                     broadcast, broadcastTpl, dispatcher, broadcaster, freezer, unfreezer, getLogger());
+                final FactionsUUIDHook hook = this.factionsHook;
+                payoutRunner.setFactionLookup(snap -> {
+                    com.massivecraft.factions.Faction f = hook.byId(snap.factionId());
+                    if (f == null || eng.factionFilter().ignores(f.getTag())) return null;
+                    UUID leader = hook.leaderUuid(f);
+                    return snap.withIdentity(f.getTag(), leader != null ? leader.toString() : null,
+                        hook.leaderName(f));
+                });
 
                 String dowName = cfg.getString("rewards.schedule.day-of-week", "MONDAY");
                 this.payoutDayOfWeek = CronScheduler.parseDayOfWeek(dowName);
@@ -532,7 +544,10 @@ public class FTopForgePlugin extends JavaPlugin {
 
     /** Re-reads items.yml and the Blocks prices; used from the next recalculation. */
     public void reloadPrices() {
-        if (engine != null) engine.setChunkValuator(loadValuator(getConfig()));
+        if (engine == null) return;
+        engine.setChunkValuator(loadValuator(getConfig()));
+        engine.setWorldFilter(new WorldFilter(getConfig().getStringList("options.ignored-worlds")));
+        engine.setFactionFilter(new FactionFilter(getConfig().getStringList("options.ignored-factions")));
     }
 
     public void reloadMessages() {

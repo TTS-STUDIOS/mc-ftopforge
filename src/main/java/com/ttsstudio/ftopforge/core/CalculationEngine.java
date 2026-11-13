@@ -29,6 +29,8 @@ public class CalculationEngine {
     private final JavaPlugin plugin;
     private final FactionsUUIDHook factions;
     private volatile ChunkValuator chunkValuator;
+    private volatile WorldFilter worldFilter = WorldFilter.NONE;
+    private volatile FactionFilter factionFilter = FactionFilter.NONE;
     private final BalanceAggregator balances;
     private final int chunksPerSec;
     private final int balancesPerSec;
@@ -51,6 +53,13 @@ public class CalculationEngine {
     /** New prices apply from the next recalculation; one in progress keeps its own. */
     public void setChunkValuator(ChunkValuator cv) { if (cv != null) this.chunkValuator = cv; }
 
+    /** Claims in these worlds are skipped from the next recalculation on. */
+    public void setWorldFilter(WorldFilter wf) { this.worldFilter = wf == null ? WorldFilter.NONE : wf; }
+
+    /** These factions are left out of the top from the next recalculation on. */
+    public FactionFilter factionFilter() { return factionFilter; }
+    public void setFactionFilter(FactionFilter ff) { this.factionFilter = ff == null ? FactionFilter.NONE : ff; }
+
     /** When frozen, tryStart returns false (used during weekly payout to avoid stale snapshots mid-write). */
     public void setFrozen(boolean f) { frozen.set(f); }
     public boolean isFrozen() { return frozen.get(); }
@@ -61,6 +70,8 @@ public class CalculationEngine {
         if (!running.compareAndSet(false, true)) return false;
 
         final ChunkValuator valuator = this.chunkValuator;
+        final WorldFilter skip = this.worldFilter;
+        final FactionFilter skipFaction = this.factionFilter;
 
         // 1. Build the work queue on the main thread (Factions API isn't thread-safe).
         Deque<ChunkJob> chunkQueue = new ArrayDeque<>();
@@ -68,12 +79,14 @@ public class CalculationEngine {
         Deque<BalanceJob> balanceQueue = new ArrayDeque<>();
 
         for (Faction f : factions.allRealFactions()) {
+            if (skipFaction.ignores(f.getTag())) continue;
             FactionSnapshot.Builder b = FactionSnapshot.builder(f.getId(), f.getTag());
             UUID lu = factions.leaderUuid(f);
             b.leader(lu == null ? null : lu.toString(), factions.leaderName(f));
             builders.put(f.getId(), b);
 
             for (FLocation fl : factions.claimsOf(f)) {
+                if (skip.ignores(fl.getWorldName())) continue;
                 chunkQueue.add(new ChunkJob(f.getId(), fl.getWorldName(), (int) fl.getX(), (int) fl.getZ()));
                 b.incChunkCount();
             }
